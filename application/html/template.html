@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <title>Timesheet</title>     
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- minimum-scale=1, maximum-scale=1"> -->
+    <base href="file:///data/data/com.dummy.myscript/files/">
+    <script src="./js/jquery-1.6.4.min.js"></script>
+    <script src="./js/jquery.mobile-1.0rc1.min.js"></script>
+    <script type="text/javascript" src="./js/jani.js"></script>
+    <link rel="stylesheet" href="./jquery.mobile-1.0rc1.min.css" />
+    <link rel="stylesheet" href="./timetracker.css" />
+    <script type="text/javascript">
+var tzoffset = new Date().getTimezoneOffset() *60000;
+function $time() {return new Date().getTime()+tzoffset;}
+function convertToDateTime(dateString){reggie = /(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2})/g; d = reggie.exec(dateString); return new Date(d[1],d[2],d[3],d[4],d[5],d[6]);}
+function fixgeometry() {
+          /* Some orientation changes leave the scroll position at something
+           * that isn't 0,0. This is annoying for user experience. */
+          scroll(0, 0);
+
+          /* Calculate the geometry that our content area should take */
+          var header = $(".header:visible");
+          var footer = $(".footer:visible");
+          var content = $(".content:visible");
+          var viewport_height = $(window).height();
+          
+          var content_height = viewport_height - header.outerHeight() - footer.outerHeight();
+          
+          /* Trim margin/border/padding height */
+          content_height -= (content.outerHeight() - content.height());
+          content.height(content_height);
+        }; /* fixgeometry */
+
+
+
+           var UIHandler = function(){
+             this.last = null,
+             this.debug = false,
+             this.droid = new Android(),
+             this.now = function(){return new Date().getTime();},
+             this.sleep = function(ms) {ms += new Date().getTime();while (new Date() < ms){}},
+             this.initialize = function () {
+                 var m = this.postAndWait({'task': 'getMethods'});
+                 for (var i in m){
+                   if (this.debug){alert("this."+m[i]+" = function(data){ p=data?data:{}; p['task']='"+m[i]+"'; resp = this.postAndWait(p); if(this.debug){this.alert('feedback', JSON.stringify(resp));} return resp;}");}
+                   eval("this."+m[i]+" = function(data){ p=data?data:{}; p['task']='"+m[i]+"'; resp = this.postAndWait(p); if(this.debug){this.alert('feedback', JSON.stringify(resp));} return resp;}");
+                 }
+             },
+             this.post = function (data) {
+                 this.droid.eventClearBuffer();
+                 this.droid.eventPost("python", JSON.stringify(data));
+             },
+             this.postAndWait = function (data, timeout) {
+                 if(this.last==null || this.now()-this.last > 200){
+                     last = this.now();
+                     this.post(data);
+                     var a;
+                     if (timeout) {
+                         a = this.droid.eventWaitFor("javascript", timeout);
+                     } else {
+                         a = this.droid.eventWaitFor("javascript");
+                     }
+                     if (a.result) {
+                         return eval('(' + a.result.data + ')');
+                     } else {
+                         return {};
+                     }
+                 } else {
+                     this.sleep(200-this.now()-this.last);
+                     this.postAndWait(data);
+                 }
+             },
+             this.alert = function(title,message){ 
+                 this.droid.dialogCreateAlert(title,message);
+                 this.droid.dialogShow();
+                 this.droid.dialogGetResponse();
+             };
+             this.initialize();
+         };
+window.handler = new UIHandler();
+var startTime, isRunning = false;
+ 
+function updateClock ()
+{
+  if (!isRunning){   
+    document.getElementById("hours").innerHTML = '-'; // Compose the string for display
+    document.getElementById("minutes").innerHTML = '-';
+    document.getElementById("seconds").innerHTML = '-';
+    return;
+  }
+
+  var currentTime = new Date($time() - startTime.getTime());
+
+  var currentHours = currentTime.getHours ( );
+  var currentMinutes = currentTime.getMinutes ( );
+  var currentSeconds = currentTime.getSeconds ( );
+
+  // Pad the minutes and seconds with leading zeros, if required
+  currentHours = ( currentHours < 10 ? "0" : "" ) + currentHours;
+  currentMinutes = ( currentMinutes < 10 ? "0" : "" ) + currentMinutes;
+  currentSeconds = ( currentSeconds < 10 ? "0" : "" ) + currentSeconds;
+
+  // Update the time display
+  document.getElementById("hours").innerHTML = currentHours; // Compose the string for display
+  document.getElementById("minutes").innerHTML = currentMinutes;
+  document.getElementById("seconds").innerHTML = currentSeconds;
+  
+  setTimeout(updateClock, 100 );
+}
+
+function refreshStatus() {
+    window.handler.startLoad({'title': "Loading status", 'message':'loading status'});
+    var resp = window.handler.getStatus();  
+    document.getElementById("name").innerHTML = resp.name;
+//    document.getElementById("startedon").innerHTML = resp.start;
+    if (resp.name!="none"){
+        $(".bstart").hide();
+        $(".bstop").show();
+        startTime = convertToDateTime(resp.start);
+        isRunning = true;
+        updateClock(); 
+    } else {
+        $(".bstart").show();
+        $(".bstop").hide();
+        isRunning = false;
+    }    
+    window.handler.stopLoad();
+}
+
+$( '#loginPage' ).live( 'pageinit',function(event){
+fixgeometry();
+  $("#submit").click(function () {
+    alert($("form#loginForm").serialize());
+    $.mobile.changePage( "#mainPage", { transition: "slideleft"} );
+    return false;
+  }); 
+});
+
+$( '#mainPage' ).live( 'pageinit',function(event){
+  showAnimation("#animation2",0);
+  fixgeometry();
+  $(".bstart").click(function () {
+    var r = window.handler.startActivity();
+    window.handler.droid.makeToast(r['msg']);
+    $("#animation1,#animation2").html('');
+    showAnimation("#animation1",1);
+    $("#activityStopped").hide();
+    $("#activityRunning").show();
+    fixgeometry();
+    refreshStatus();
+  }); 
+
+  $(".bstop").click(function () {
+    var r = window.handler.stopActivity();
+    window.handler.droid.makeToast(r['msg']);
+    refreshStatus();
+    $("#animation1,#animation2").html('');
+    showAnimation("#animation2",0);
+    $("#activityRunning").hide();
+    $("#activityStopped").show();
+    fixgeometry();
+  }); 
+
+  $(".bexit").click(function () {
+    if (window.handler.shutdown()) {
+        window.handler.droid.dismiss();
+    }    
+  }); 
+
+  setTimeout(refreshStatus, 1000);
+});
+
+</script>
+</head>
+<body> 
+
+  <div id="loginPage" data-role="page" data-theme="a" height="100%">
+    <div data-role="header" role="header" data-id="header" data-position="fixed" class="ui-header">
+      <h1>Time Tracker</h1>
+      <a href="#" data-role="button" class="bexit" data-icon="refresh" data-inline="true" data-iconpos="notext">Refresh</a>
+    </div><!-- /header -->
+
+    <div data-role="content">
+      <form id="loginForm" method="get" action="#mainPage">
+        <label for="username">Username:</label> <input type="text" name="username"><br>
+        <label for="password">Password:</label> <input type="password" name=
+        "password"><br>
+
+        <fieldset data-role="controlgroup">
+          <input type="checkbox" name="remember" id="remember" class="custom">
+          <label for="remember">Remember me</label>
+        </fieldset><br>
+
+        <fieldset class="ui-grid-a">
+          <div class="ui-block-a">
+            <button id="submit" type="submit" data-theme="b">Submit</button>
+          </div>
+
+          <div class="ui-block-b">
+            <button type="cancel" data-theme="c">Cancel</button>
+          </div>
+        </fieldset>
+      </form>
+    </div><!-- /content -->
+
+    <div data-role="footer" role="footer" data-id="footer" data-position="fixed" class=
+    "ui-footer ui-footer-fixed">
+      <p><small>&nbsp;&nbsp;&nbsp;&#169; 2011 Gianpaolo Terranova</small></p>
+    </div><!-- /footer -->
+  </div><!-- /page -->
+
+
+  <div id="mainPage" data-role="page" data-theme="a">
+    <div data-role="header" role="header" data-id="header" data-position="fixed" class=
+    "ui-header">
+      <h1>Time Tracker</h1>
+    </div><!-- /header -->
+
+    <div data-role="content">
+      <div id="activityRunning" style="display: none">
+        <div style="display: block">
+          <h1 style="margin-top: 0;"><span id="name" style="display: inline;">XXXXXX</span><!-- (started on <span id="startedon" style="display: inline;"></span>) --></h1>
+        </div>
+        <div id="animation1"></div>
+        <div class="counter">
+          <ul>
+            <li id="hours">-</li>
+
+            <li id="minutes">-</li>
+
+            <li id="seconds">-</li>
+          </ul>
+        </div>
+
+        <fieldset class="ui-grid-a">
+          <div class="ui-block-a">
+            <button class="bstart" type="submit" data-theme="b">Start</button>
+          </div>
+
+          <div class="ui-block-b">
+            <button class="bstop" data-theme="c">Stop</button>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="ui-block-a" id="activityStopped">
+        <div id="animation2"></div>
+
+        <h1>No activity running!</h1>
+
+        <h3>Click "start" to begin tracking your time.</h3><a href="#" data-role="button"
+        class="bstart" data-theme="b">Start</a>
+      </div>
+    </div><!-- /content -->
+
+    <div data-role="footer" role="footer" data-id="footer" data-position="fixed" class=
+    "ui-footer ui-footer-fixed">
+      <p><small>&nbsp;&nbsp;&nbsp;&copy; 2011 Gianpaolo Terranova</small></p>
+    </div><!-- /footer -->
+  </div><!-- /page -->
+
+</body>
+</html>

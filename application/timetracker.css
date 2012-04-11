@@ -1,0 +1,54 @@
+      @media screen and (orientation: landscape) {
+        html, body {
+          width: 100%;
+        }
+
+        .content h1.landscape { display: block }
+        .content h1.portrait { display: none }
+      }
+      @media screen and (orientation: portrait) {
+        html, body {
+          width: 100%;
+        }
+
+        .content .landscape { display: none }
+        .content .portrait { display: block }
+      }
+
+ol, ul {
+    line-height: normal;
+    list-style: none outside none;
+    margin: 0;
+    padding: 0;
+}
+
+li {
+    margin: 0;
+    padding: 0;
+}
+
+.counter {
+    margin: 20px auto;
+    text-align: left;
+    width: 198px;
+    background: url("./images/general_countdown.png") no-repeat scroll left top transparent;
+    display: block;
+    height: 32px;
+    overflow: hidden;
+    width: 183px;
+    font-family: Arial, Helvetica, sans-serif; font-size: 2em; color: white; 
+}
+
+.counter li {
+    color: #FFFFFF;
+    display: block;
+    float: left;
+    font-size: 20px;
+    font-weight: bold;
+    height: 32px;
+    padding-left: 1px;
+    padding-right: 1px;
+    padding-top: 3px;
+    text-align: center;
+    width: 59px;
+}

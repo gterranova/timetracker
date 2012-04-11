@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <title>Timesheet</title>     
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 minimum-scale=1.0, maximum-scale=1.0">
+    <base href="file:///C:/Users/g.terranova/Documents/progetti/www/lab/timetracker/application/">
+    <script src="./js/jquery-1.6.4.min.js"></script>
+    <script src="./js/jquery.mobile-1.0rc1.min.js"></script>
+    <script type="text/javascript" src="./js/jani.js"></script>
+    <link rel="stylesheet" href="./jquery.mobile-1.0rc1.min.css" />
+    <link rel="stylesheet" href="./timetracker.css" />
+<script>
+
+$( '#loginPage' ).live( 'pageinit',function(event){
+  $("#submit").click(function () {
+    alert($("form#loginForm").serialize());
+    $.mobile.changePage( "main.html", { transition: "slideleft"} );
+    return false;
+  }); 
+});
+
+</script>
+
+</head>
+<body>
+
+  <div id="loginPage" data-role="page" data-theme="a" height="100%">
+    <div data-role="header" role="header" data-id="header" data-position="fixed" class="ui-header">
+      <h1>Time Tracker</h1>
+      <a href="#" data-role="button" class="bexit" data-icon="refresh" data-inline="true" data-iconpos="notext">Refresh</a>
+    </div><!-- /header -->
+
+    <div data-role="content">
+      <form id="loginForm" method="get" action="#mainPage">
+        <label for="username">Username:</label> <input type="text" name="username"><br>
+        <label for="password">Password:</label> <input type="password" name=
+        "password"><br>
+
+        <fieldset data-role="controlgroup">
+          <input type="checkbox" name="remember" id="remember" class="custom">
+          <label for="remember">Remember me</label>
+        </fieldset><br>
+
+        <fieldset class="ui-grid-a">
+          <div class="ui-block-a">
+            <button id="submit" type="submit" data-theme="b">Submit</button>
+          </div>
+
+          <div class="ui-block-b">
+            <button type="cancel" data-theme="c">Cancel</button>
+          </div>
+        </fieldset>
+      </form>
+    </div><!-- /content -->
+
+    <div data-role="footer" role="footer" data-id="footer" data-position="fixed" class=
+    "ui-footer ui-footer-fixed">
+      <p><small>&nbsp;&nbsp;&nbsp;&#169; 2011 Gianpaolo Terranova</small></p>
+    </div><!-- /footer -->
+  </div><!-- /page -->
+
+</body>
+</html>

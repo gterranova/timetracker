@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <title>Timesheet</title>     
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 minimum-scale=1.0, maximum-scale=1.0">
+    <base href="file:///C:/Users/g.terranova/Documents/progetti/www/lab/timetracker/application/">
+    <script src="./js/jquery-1.6.4.min.js"></script>
+    <script src="./js/jquery.mobile-1.0rc1.min.js"></script>
+    <script type="text/javascript" src="./js/jani.js"></script>
+    <link rel="stylesheet" href="./jquery.mobile-1.0rc1.min.css" />
+    <link rel="stylesheet" href="./timetracker.css" />
+<script>
+var data = [{ 'id': 'ladyoff', 'bg':'animation-1', params: {frameWidth: 200, frameHeight: 201, speed: 200, totalFrames: 8 }}, 
+{ 'id': 'ladyon', 'bg':'animation-2', params: {frameWidth: 200, frameHeight: 201, speed: 200, totalFrames: 10 }}, 
+{ 'id': 'manoff', 'bg':'animation-3', params: {frameWidth: 200, frameHeight: 201, speed: 1000, totalFrames: 2 }}, 
+{ 'id': 'manon', 'bg':'animation-4',  params: {frameWidth: 200, frameHeight: 201, speed: 100, totalFrames: 16 }}];
+
+function showAnimation(container, n){
+  $('<div id='+data[n]['id']+'></div>').appendTo(container).css("background", "url(./images/"+data[n]['bg']+".gif) no-repeat left top").jani(data[n]['params']);
+  $("#"+data[n]['id']).jani.play();	   
+}
+function fixgeometry() {
+          /* Some orientation changes leave the scroll position at something
+           * that isn't 0,0. This is annoying for user experience. */
+          scroll(0, 0);
+
+          /* Calculate the geometry that our content area should take */
+          var header = $(".header:visible");
+          var footer = $(".footer:visible");
+          var content = $(".content:visible");
+          var viewport_height = $(window).height();
+          
+          var content_height = viewport_height - header.outerHeight() - footer.outerHeight();
+          
+          /* Trim margin/border/padding height */
+          content_height -= (content.outerHeight() - content.height());
+          content.height(content_height);
+        }; /* fixgeometry */
+
+$( '#loginPage' ).live( 'pageinit',function(event){
+fixgeometry();
+  $("#submit").click(function () {
+    alert($("form#loginForm").serialize());
+    $.mobile.changePage( $("#mainPage"), { transition: "slideleft"} );
+    return false;
+  }); 
+});
+
+$( '#mainPage' ).live( 'pageinit',function(event){
+  showAnimation("#animation2",0);
+  fixgeometry();
+  $(".bstart").click(function () {
+    $("#animation1,#animation2").html('');
+    showAnimation("#animation1",1);
+    $("#activityStopped").hide();
+    $("#activityRunning").show();
+    fixgeometry();
+    return false;
+  }); 
+  $(".bstop").click(function () {
+    $("#animation1,#animation2").html('');
+    showAnimation("#animation2",0);
+    $("#activityRunning").hide();
+    $("#activityStopped").show();
+    fixgeometry();
+    return false;
+  }); 
+});
+
+</script>
+
+</head>
+<body>
+
+  <div id="loginPage" data-role="page" data-theme="a" height="100%">
+    <div data-role="header" role="header" data-id="header" data-position="fixed" class="ui-header">
+      <h1>Time Tracker</h1>
+      <a href="#" data-role="button" class="bexit" data-icon="refresh" data-inline="true" data-iconpos="notext">Refresh</a>
+    </div><!-- /header -->
+
+    <div data-role="content">
+      <form id="loginForm" method="get" action="#mainPage">
+        <label for="username">Username:</label> <input type="text" name="username"><br>
+        <label for="password">Password:</label> <input type="password" name=
+        "password"><br>
+
+        <fieldset data-role="controlgroup">
+          <input type="checkbox" name="remember" id="remember" class="custom">
+          <label for="remember">Remember me</label>
+        </fieldset><br>
+
+        <fieldset class="ui-grid-a">
+          <div class="ui-block-a">
+            <button id="submit" type="submit" data-theme="b">Submit</button>
+          </div>
+
+          <div class="ui-block-b">
+            <button type="cancel" data-theme="c">Cancel</button>
+          </div>
+        </fieldset>
+      </form>
+    </div><!-- /content -->
+
+    <div data-role="footer" role="footer" data-id="footer" data-position="fixed" class=
+    "ui-footer ui-footer-fixed">
+      <p><small>&nbsp;&nbsp;&nbsp;&#169; 2011 Gianpaolo Terranova</small></p>
+    </div><!-- /footer -->
+  </div><!-- /page -->
+
+
+  <div id="mainPage" data-role="page" data-theme="a">
+    <div data-role="header" role="header" data-id="header" data-position="fixed" class=
+    "ui-header">
+      <h1>Time Tracker</h1>
+    </div><!-- /header -->
+
+    <div data-role="content">
+      <div id="activityRunning" style="display: none">
+        <div style="display: block">
+          <h1 style="margin-top: 0;"><span id="name" style="display: inline;">XXXXXX</span><!-- (started on <span id="startedon" style="display: inline;"></span>) --></h1>
+        </div>
+        <div id="animation1"></div>
+        <div class="counter">
+          <ul>
+            <li id="hours">-</li>
+
+            <li id="minutes">-</li>
+
+            <li id="seconds">-</li>
+          </ul>
+        </div>
+
+        <fieldset class="ui-grid-a">
+          <div class="ui-block-a">
+            <button class="bstart" type="submit" data-theme="b">Start</button>
+          </div>
+
+          <div class="ui-block-b">
+            <button class="bstop" data-theme="c">Stop</button>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="ui-block-a" id="activityStopped">
+        <div id="animation2"></div>
+
+        <h1>No activity running!</h1>
+
+        <h3>Click "start" to begin tracking your time.</h3><a href="#" data-role="button"
+        class="bstart" data-theme="b">Start</a>
+      </div>
+    </div><!-- /content -->
+
+    <div data-role="footer" role="footer" data-id="footer" data-position="fixed" class=
+    "ui-footer ui-footer-fixed">
+      <p><small>&nbsp;&nbsp;&nbsp;&copy; 2011 Gianpaolo Terranova</small></p>
+    </div><!-- /footer -->
+  </div><!-- /page -->
+</body>
+</html>
