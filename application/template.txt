@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <title>Timesheet</title>     
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, nimimum-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="file:///sdcard/sl4a/scripts/test/jquery.mobile-1.0rc1.min.css" />
+    <script src="file:///sdcard/sl4a/scripts/test/jquery-1.6.4.min.js"></script>
+    <script src="file:///sdcard/sl4a/scripts/test/jquery.mobile-1.0rc1.min.js"></script>
+    <script type="text/javascript">
+   
+  var droid=new Android(),handler;
+  var UIHandler = new Class({
+	"initialize":function(){
+		this.last = null;
+	},
+	"post": function( data ) {
+		droid.eventPost("python", Json.toString(data) );
+	},
+	"postAndWait":function( data, timeout ){
+		if(this.last==null || $time()-this.last > 200){
+			last=$time();
+			this.post(data);
+			var a;
+			if(timeout){
+			a = droid.eventWaitFor( "javascript", timeout );
+			} else {
+				a = droid.eventWaitFor( "javascript" );
+			}
+			
+			if( a.result ) {
+				return Json.evaluate(a.result.data);
+			} else {
+				return {};
+			}
+		} else {
+			this.postAndWait.delay($time()-this.last,this,[data,timeout]);
+		}
+	},
+	"alert":function(title,message){
+		droid.dialogCreateAlert(title,message);
+		droid.dialogShow();
+		droid.dialogGetResponse();
+	},
+	"startLoad":function(title, message){
+		droid.dialogCreateSpinnerProgress(title, message)
+		droid.dialogShow()
+	},
+	"stopLoad":function(){
+		droid.dialogDismiss()
+	}
+  });
+  var handler = new UIHandler();
+
+    $(document).ready(function(){
+  $(".bstatus").live("click tap", function( event, data ){
+
+	// Let the framework know we're going to handle things.
+
+	event.preventDefault();
+    window.alert("status clicked");  
+    handler.startLoad("Loading status");
+    var resp = handler.postAndWait({"task":"status"});
+    handler.stopLoad();
+    if(!resp.success){
+      handler.alert("Error","No data!");
+    } else{
+      document.getElementById("name").innerHTML = resp.name;
+      document.getElementById("startedon").innerHTML = resp.start;  
+    }
+  });
+  $(".bstart").live("click tap", function( event, data ){
+
+	// Let the framework know we're going to handle things.
+
+	event.preventDefault();
+    window.alert("start clicked");
+    handler.startLoad("Loading status");
+    var resp = handler.postAndWait({"task":"start"});
+    handler.stopLoad();
+    if(!resp.success){
+      handler.alert("Error","Error Starting!");
+    } else{
+      handler.alert("Activity",resp.msg);
+    }
+  });
+  $(".bstop").live("click tap", function( event, data ){
+
+	// Let the framework know we're going to handle things.
+
+	event.preventDefault();
+    window.alert("stop clicked");  
+    handler.startLoad("Loading status");
+    var resp = handler.postAndWait({"task":"stop"});
+    handler.stopLoad();
+    if(!resp.success){
+      handler.alert("Error","Error Stopping!");
+    } else{
+      handler.alert("Activity",resp.msg);
+    }
+  });
+});
+</script>
+</head>
+<body>
+<div id="mainpage" data-role="page" class="type-interior" data-theme="a">
+	<div data-role="header">
+		<h1>Timesheet</h1>
+		<!-- a href="../../" data-icon="home" data-iconpos="notext" data-direction="reverse" class="ui-btn-right jqm-home">Home</a> -->
+	</div><!-- /header -->
+	<div data-role="content">
+		<div class="content-primary">
+		 <h2>Activity Status</h2>
+<ul>
+<li><strong>Name: <div id="name" style="display: inline;" /></div>
+</li>
+<li><strong>Sarted on: <div id="startedon" style="display: inline;" /></div>
+</li>
+</ul>
+<a href="#" data-role="button" class="bstart" data-icon="plus">Start</a>
+<a href="#" data-role="button" class="bstop" data-icon="delete">Stop</a>
+<a href="#" data-role="button" class="bstatus" data-icon="info">Status</a>
+			
+	</div><!--/content-primary -->		
+	
+	<div class="content-secondary">
+		
+		<div data-role="collapsible" data-collapsed="true" data-theme="b" data-content-theme="d">
+			
+				<h3>More in this section</h3>
+
+				
+				<ul data-role="listview" data-theme="c" data-dividertheme="d">				
+					<li data-role="list-divider">Buttons</li>
+					<li data-theme="a"><a href="buttons-types.html">Button basics</a></li>
+					<li><a href="buttons-icons.html">Button icons</a></li>
+					<li><a href="buttons-inline.html">Inline buttons</a></li>
+					<li><a href="buttons-grouped.html">Grouped buttons</a></li>
+					<li><a href="buttons-themes.html">Theming buttons</a></li>	
+				</ul>
+
+		</div>
+	</div>		
+
+</div><!-- /content -->
+
+<div data-role="footer" class="footer-docs" data-theme="a">
+		<p>&copy; 2011 The jQuery Project</p>
+</div>
+	
+</div><!-- /page -->
+
+</body>
+</html>
